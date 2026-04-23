@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <meta name="theme-color" content="#0b0815">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="BIBAHABD CRM">
-<link rel="manifest" id="pwaManifest">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BIBAHABD CRM | Enterprise v3</title>
+<title>BIBAHABD CRM | Enterprise v3.02</title>
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 :root{
+  --bg:#0b0815;--bg2:#120f22;--bg3:#1a1530;--card:rgba(255,255,255,.05);--gold:#c9a227;--txt:#f0e6d3;--red:#e74c3c; /* [notun add kora hoyeche...] */
   --bg:#0b0815;--bg2:#120f22;--bg3:#1a1530;
   --card:rgba(255,255,255,.05);--card2:rgba(255,255,255,.08);
   --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);
@@ -444,20 +442,18 @@ canvas{max-height:190px;}
 <body>
 
 <!-- LOGIN -->
-<div id="loginPage">
-  <div class="lcard">
-    <div class="llogo"><h1>💍 BIBAHABD</h1><p>Enterprise CRM v3.0 | চট্টগ্রাম অফিস</p></div>
-    <div class="fg"><label>ইউজারনেম</label><input type="text" id="lUser" class="fi" placeholder="username" autocomplete="username"></div>
-    <div class="fg"><label>পাসওয়ার্ড</label>
-      <div class="pw-w"><input type="password" id="lPass" class="fi" placeholder="password" autocomplete="current-password">
-        <span class="pweye" onclick="tgPw()"><i class="fa fa-eye" id="pwico"></i></span>
-      </div>
-    </div>
-    <button class="lbtn" onclick="doLogin()"><i class="fa fa-sign-in-alt"></i> প্রবেশ করুন</button>
-    <div class="lerr" id="lerr"><i class="fa fa-exclamation-circle"></i> <span id="lerrMsg">ইউজারনেম বা পাসওয়ার্ড ভুল!</span></div>
-    <div style="text-align:center;margin-top:14px"><span style="font-size:.78rem;color:var(--txt2)">কাউন্সিলর? </span><span style="font-size:.78rem;color:var(--gold);cursor:pointer;text-decoration:underline" onclick="openOtpLogin()">OTP দিয়ে প্রবেশ করুন</span></div>
+<div id="loginPage" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);">
+  <div class="lcard" style="background:rgba(255,255,255,.04);padding:40px;border-radius:20px;width:400px;border:1px solid rgba(255,255,255,.1);">
+    <div style="text-align:center;margin-bottom:25px;"><h1 style="color:var(--gold);font-family:'Cormorant Garamond',serif;">💍 BIBAHABD CRM</h1><p style="font-size:.8rem;color:rgba(255,255,255,.6);">নিরাপদ লগইন সেশন</p></div>
+    <div style="margin-bottom:15px;"><label style="font-size:.8rem;">ইউজারনেম</label><input type="text" id="lUser" class="fi" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;"></div>
+    <div style="margin-bottom:20px;"><label style="font-size:.8rem;">পাসওয়ার্ড</label><input type="password" id="lPass" class="fi" style="width:100%;padding:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;"></div>
+    <button onclick="doLogin()" style="width:100%;padding:12px;background:var(--gold);border:none;border-radius:8px;font-weight:600;cursor:pointer;">প্রবেশ করুন</button>
+    <div id="lerr" style="color:var(--red);font-size:.8rem;text-align:center;margin-top:10px;display:none;">ইউজারনেম বা পাসওয়ার্ড ভুল!</div>
+    <div style="text-align:center;margin-top:15px;"><span style="font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;" onclick="openOtpLogin()">OTP দিয়ে লগইন</span></div>
   </div>
 </div>
+
+
 
 <!-- APP -->
 <div id="app">
@@ -1199,7 +1195,104 @@ canvas{max-height:190px;}
 <div class="twrap" id="twrap"></div>
 <div id="sbov" onclick="tgSb()"></div>
 <script>
+// ১. নিরাপত্তা ফিক্স: সরাসরি লগইন পেজ দেখানো
+function checkSetup(){
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+}
 
+// ২. উন্নত লগইন (কাউন্সিলর ইউজারনেম/পাসওয়ার্ড ভেরিফিকেশন সহ)
+function doLogin(){
+    const u = document.getElementById('lUser').value.trim();
+    const p = document.getElementById('lPass').value;
+    const au = S.auth(); const st = S.st();
+    let ok = false;
+
+    // এডমিন চেক
+    if(u === au.un && p === au.pw){ CU = {nm:u, role:'admin'}; ok = true; }
+    else {
+        // কাউন্সিলর চেক (ইউজারনেম ও পাসওয়ার্ড দিয়ে)
+        const cn = st.counselors.find(c => c.un === u && c.pw === p);
+        if(cn){ CU = {nm:cn.nm, role:'counselor', id:cn.id}; ok = true; }
+    }
+
+    if(ok){
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        loadUserPhotos();
+        initApp();
+        toast('লগইন সফল!', 's');
+    } else {
+        document.getElementById('lerr').style.display = 'block';
+        setTimeout(()=>document.getElementById('lerr').style.display='none', 3000);
+    }
+}
+
+// ৩. লগআউটের সময় অটো সিঙ্ক এবং পপ-আপ
+async function doLogout(){
+    if(confirm("আপনি কি লগআউট করতে চান? আপনার সব ডাটা গুগল শীটে সিঙ্ক করা হবে।")){
+        // পপ-আপ মেসেজ
+        toast('⏳ ডাটা সিঙ্ক হচ্ছে, অনুগ্রহ করে কিছুক্ষণ অপেক্ষা করুন...', 'i');
+        
+        try {
+            // যদি গুগল শীট URL সেট করা থাকে তবে সিঙ্ক হবে
+            if(GS.url()) {
+                await GS.sync(); 
+            }
+        } catch(e) {
+            console.error("সিঙ্ক ব্যর্থ হয়েছে।");
+        }
+
+        const att = S.at() || [];
+        att.push({id:'A'+Date.now(), user:CU?.nm, act:'logout', tm:new Date().toISOString()});
+        S.s('at', att);
+        
+        CU = null;
+        document.getElementById('app').style.display = 'none';
+        checkSetup(); // লগইন পেজে ফেরত
+    }
+}
+
+// ৪. কাউন্সিলর অ্যাডমিনিস্ট্রেশন (ইমেজ, ইউজারনেম, পাসওয়ার্ড এবং কমিশন)
+function addCn(){
+    if(CU.role !== 'admin') return; // শুধু এডমিন পারবে
+    
+    const nm = prompt('কাউন্সিলরের পুরো নাম:'); if(!nm) return;
+    const un = prompt('লগইন ইউজারনেম:'); if(!un) return;
+    const pw = prompt('পাসওয়ার্ড সেট করুন:'); if(!pw) return;
+    const comm = prompt('কমিশন (অংক লিখুন):', 10);
+    const commTp = prompt('কমিশন ধরন (pct লিখুন পার্সেন্টেজ এর জন্য, fixed লিখুন ফিক্সড এর জন্য):', 'pct');
+    
+    const st = S.st();
+    st.counselors.push({
+        id: 'c'+Date.now(), nm, un, pw, comm, commTp,
+        ph: '', em: '', pic: '' // পরবর্তীতে প্রোফাইল থেকে আপলোড করা যাবে
+    });
+    S.s('st', st);
+    showSp('counselors', document.querySelector('.sni.act'));
+    toast('কাউন্সিলর সফলভাবে যোগ হয়েছে', 's');
+}
+
+// ৫. প্যাকেজ কমিশন (এডমিন অনলি)
+function addPkg(){
+    if(CU.role !== 'admin') return;
+    const nm = prompt('প্যাকেজের নাম:'); if(!nm) return;
+    const price = prompt('মূল্য (৳):');
+    const dur = prompt('মেয়াদ (দিন):');
+    const comm = prompt('এই প্যাকেজের কমিশন (অংক):', 10);
+    const commTp = prompt('কমিশন ধরন (pct/fixed):', 'pct');
+    
+    const st = S.st();
+    st.packages.push({id:'p'+Date.now(), nm, price, dur, comm, commTp});
+    S.s('st', st);
+    showSp('packages', document.querySelector('.sni.act'));
+    toast('প্যাকেজ যোগ হয়েছে', 's');
+}
+
+// ৫.১ কমিশন হাইড করা (কাউন্সিলরদের জন্য)
+  // [এই অংশটি showSp ফাংশনের ভেতর অটোমেটিক চেক করবে]
+
+  
 // ===== DATABASE =====
 const S={
   g(k){try{return JSON.parse(localStorage.getItem('bbd_'+k))}catch{return null}},
